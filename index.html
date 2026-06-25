@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Поймай AI</title>
+<meta name="description" content="Проверка русского текста на приметы машинного почерка. Приметы, а не приговор. Текст не покидает браузер.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EAEFFB; --bg2:#F6F8FD; --card:#FFFFFF;
+    --ink:#1B2350; --muted:#5B6480; --muted2:#7C859F; --faint:#9AA6CB;
+    --line:#E6EAF5; --line2:#E2E7F4; --line3:#ECEFF8;
+    --blue:#3B5BFF; --blue2:#5575FF; --grad1:#7E97FF; --grad2:#3B5BFF; --deep:#3A55E8; --soft:#EEF1FB;
+    --green:#15803D; --green2:#22C55E; --green-bg:#ECFAF1; --green-line:#D6EEDD;
+    --amber:#B5790B; --amber-bg:#FBF3DF; --amber-line:#F0E0B0;
+    --red:#C0402E; --red-bg:#FBECEA; --red-line:#F2D2CC;
+    --deco:#C3CEF0; --deco2:#9DB0EE;
+    --shadow:0 2px 5px rgba(27,35,80,.04), 0 16px 40px rgba(43,62,128,.09);
+    --shadow-btn:0 12px 26px rgba(59,91,255,.34);
+    --sans:'Manrope',-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{margin:0; padding:0; box-sizing:border-box}
+  body{background:linear-gradient(180deg,var(--bg2),var(--bg)) no-repeat; min-height:100vh; color:var(--ink); font:16px/1.6 var(--sans); -webkit-font-smoothing:antialiased}
+  .bg-deco{position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0; color:var(--deco)}
+  .bg-deco svg{position:absolute}
+  .deco-tr{top:-34px; right:-44px; width:330px; opacity:.5}
+  .deco-bl{bottom:-46px; left:-50px; width:300px; opacity:.42}
+
+  .wrap{position:relative; z-index:1; max-width:680px; margin:0 auto; padding:52px 20px 72px}
+
+  .hero{text-align:center}
+  h1.title{font-size:46px; line-height:1.05; font-weight:800; letter-spacing:-.02em; color:var(--ink); margin:0 0 14px}
+  .subtitle{color:var(--muted); font-size:18px; line-height:1.5; max-width:34ch; margin:0 auto}
+
+  .hero-art{position:relative; display:flex; justify-content:center; align-items:center; margin:14px 0 28px; min-height:200px}
+  .hero-art .tw{width:270px; height:auto; filter:drop-shadow(0 20px 32px rgba(59,91,255,.22))}
+  .hero-art .dots{position:absolute; top:26%; opacity:.5; color:var(--deco2)}
+  .hero-art .dots.l{left:1%} .hero-art .dots.r{right:1%}
+  .hero-art .sq{position:absolute; width:18px; height:18px; border:2px solid var(--deco2); border-radius:5px; opacity:.55}
+  .hero-art .sq.l{left:8%; top:60%} .hero-art .sq.r{right:8%; top:36%}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:22px; box-shadow:var(--shadow)}
+  .input-card{padding:8px; position:relative; margin-bottom:16px}
+  textarea#inp{width:100%; min-height:178px; resize:vertical; padding:18px 18px 30px; border:0; border-radius:16px; background:transparent; color:var(--ink); font:16px/1.7 var(--sans); outline:none}
+  textarea#inp::placeholder{color:var(--faint)}
+  .counter{position:absolute; right:20px; bottom:14px; color:var(--faint); font:13px var(--mono)}
+
+  .btn-primary{display:flex; align-items:center; justify-content:center; gap:10px; width:100%; cursor:pointer; border:0; border-radius:16px; padding:17px 24px; color:#fff; font:700 17px var(--sans); background:linear-gradient(180deg,var(--grad1),var(--grad2)); box-shadow:var(--shadow-btn); transition:filter .15s, transform .05s}
+  .btn-primary:hover{filter:brightness(1.04)} .btn-primary:active{transform:translateY(1px)}
+  .btn-primary svg{width:20px; height:20px}
+
+  .subactions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 24px}
+  .subactions button{cursor:pointer; background:#fff; border:1px solid var(--line); color:var(--muted); font:600 14px var(--sans); padding:9px 16px; border-radius:12px; transition:border-color .15s, color .15s}
+  .subactions button:hover{border-color:var(--blue); color:var(--blue)}
+
+  #out{margin-bottom:22px}
+  .rcard{padding:24px; margin-bottom:16px}
+  .rhead{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+  .rtitle{font-size:18px; font-weight:800; color:var(--ink)}
+
+  .empty{display:flex; flex-direction:column; align-items:center; gap:12px; padding:22px 0 26px; color:var(--muted2)}
+  .empty-ic{display:flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:50%; background:var(--soft); color:var(--blue)}
+  .empty-ic svg{width:26px; height:26px}
+
+  .loading{display:flex; flex-direction:column; align-items:center; gap:12px; padding:26px 0}
+  .spin{width:38px; height:38px; border:4px solid var(--line2); border-top-color:var(--blue); border-radius:50%; animation:sp .8s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .loading .lt{font-weight:700; color:var(--ink)} .loading .ls{color:var(--muted2); font-size:13px}
+
+  .verdict{display:flex; align-items:center; gap:20px}
+  .ring{position:relative; width:118px; height:118px; flex:none}
+  .ring .num{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center}
+  .ring .num b{font:800 30px/1 var(--mono); color:var(--ink)}
+  .ring .num small{font-size:11px; color:var(--muted2); margin-top:2px}
+  .vmain{flex:1}
+  .vlabel{font-size:22px; font-weight:800; margin-bottom:3px}
+  .vlabel.t-human{color:var(--green)} .vlabel.t-mixed{color:var(--amber)} .vlabel.t-ai{color:var(--red)}
+  .vsub{color:var(--ink); font-weight:600; margin-bottom:6px}
+  .vexpl{color:var(--muted); font-size:14px}
+
+  .metrics{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px}
+  .metric{background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:13px 14px}
+  .metric .mk{color:var(--muted2); font-size:13px; margin-bottom:4px}
+  .metric .mv{font-weight:800; font-size:16px}
+  .mv.good{color:var(--green)} .mv.mid{color:var(--amber)} .mv.bad{color:var(--red)}
+
+  .ractions{display:flex; gap:10px; margin-top:18px}
+  .btn-ghost{cursor:pointer; background:#fff; border:1px solid var(--line); color:var(--ink); font:600 14px var(--sans); padding:11px 16px; border-radius:12px; display:inline-flex; align-items:center; gap:8px}
+  .btn-ghost:hover{border-color:var(--blue); color:var(--blue)}
+  .btn-ghost svg{width:16px; height:16px}
+
+  .sec{font-size:15px; font-weight:800; color:var(--ink); margin:0 0 12px}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; color:var(--muted2); font-size:12.5px; margin-bottom:12px}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .sw{width:14px; height:14px; border-radius:4px; display:inline-block}
+  .sw.h{background:var(--green-bg); border:1px solid var(--green-line)}
+  .sw.m{background:var(--amber-bg); border:1px solid var(--amber-line)}
+  .sw.a{background:var(--red-bg); border:1px solid var(--red-line)}
+  .hlbox{line-height:2; font-size:15.5px}
+  .s-human{background:var(--green-bg); border-radius:5px; padding:1px 3px; box-shadow:inset 0 -2px 0 var(--green-line)}
+  .s-maybe{background:var(--amber-bg); border-radius:5px; padding:1px 3px; box-shadow:inset 0 -2px 0 var(--amber-line)}
+  .s-ai{background:var(--red-bg); border-radius:5px; padding:1px 3px; box-shadow:inset 0 -2px 0 var(--red-line)}
+  mark.inv{background:var(--red-bg); color:var(--red); font:700 11px var(--mono); padding:1px 4px; border-radius:5px}
+
+  .chips{display:flex; flex-wrap:wrap; gap:7px; margin-top:6px}
+  .chip{background:var(--soft); border:1px solid #DCE3FA; color:var(--ink); border-radius:8px; padding:3px 9px; font-size:13px}
+  .chip.live{background:var(--green-bg); border-color:var(--green-line)}
+  .chip .n{color:var(--faint); margin-left:5px}
+  .subhead{font-weight:700; color:var(--ink); margin:14px 0 6px; font-size:14px}
+  .disc{color:var(--muted2); font-size:12.5px; margin-top:14px}
+  #cleanOut{width:100%; min-height:150px; background:var(--bg2); border:1px solid var(--line2); border-radius:14px; padding:14px; font:15px/1.7 var(--sans); color:var(--ink); resize:vertical}
+
+  .features{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .feature{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px}
+  .feature .fic{display:flex; align-items:center; justify-content:center; width:42px; height:42px; border-radius:12px; background:var(--soft); color:var(--blue); margin-bottom:12px}
+  .feature .fic svg{width:22px; height:22px}
+  .feature h4{font-size:15px; color:var(--ink); margin-bottom:4px}
+  .feature p{color:var(--muted2); font-size:13px; line-height:1.5}
+
+  .history{margin-top:18px}
+  .hitem{display:flex; align-items:center; gap:12px; padding:11px 0; border-top:1px solid var(--line2)}
+  .hitem:first-of-type{border-top:0}
+  .hitem .ht{flex:1; min-width:0}
+  .hitem .hp{color:var(--ink); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .hitem .hm{color:var(--faint); font:12px var(--mono); margin-top:2px}
+  .htag{font-size:12px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap}
+  .htag.t-human{background:var(--green-bg); color:var(--green)} .htag.t-mixed{background:var(--amber-bg); color:var(--amber)} .htag.t-ai{background:var(--red-bg); color:var(--red)}
+  .linklike{cursor:pointer; background:none; border:0; color:var(--muted2); font:600 13px var(--sans)}
+  .linklike:hover{color:var(--blue)}
+
+  .foot{color:var(--faint); font-size:12.5px; text-align:center; margin-top:24px; line-height:1.7}
+
+  @media(max-width:620px){
+    h1.title{font-size:34px} .subtitle{font-size:16px}
+    .verdict{flex-direction:column; text-align:center; gap:14px}
+    .metrics{grid-template-columns:1fr} .features{grid-template-columns:1fr}
+    .wrap{padding:36px 16px 56px}
+  }
+  @media print{ .bg-deco,.input-card,.btn-primary,.subactions,.features,.foot,.ractions,.history{display:none!important} body{background:#fff} }
+.finding{margin-top:13px}
+.fname{font-weight:700;color:#1B2350;font-size:14.5px}
+.fwhy{color:#5A6488;font-size:13.5px;line-height:1.55;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="bg-deco" style="position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:0;">
+  <svg style="position:absolute; top:4%; left:4%; width:72px; opacity:.42" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:6%; right:5%; width:56px; opacity:.34" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:18%; left:6%; width:84px; opacity:.4" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:23%; right:7%; width:52px; opacity:.3" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:38%; left:3%; width:62px; opacity:.38" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:44%; right:4%; width:76px; opacity:.34" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:57%; left:7%; width:50px; opacity:.3" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:61%; right:5%; width:68px; opacity:.4" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:74%; left:5%; width:80px; opacity:.36" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:78%; right:6%; width:56px; opacity:.32" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:90%; left:4%; width:64px; opacity:.4" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+  <svg style="position:absolute; top:92%; right:5%; width:74px; opacity:.34" viewBox="-26 -28 52 56" fill="none" stroke="#7E97FF" stroke-width="1.3"><path d="M0 -26 L23 -13 L23 13 L0 26 L-23 13 L-23 -13Z"/><path d="M0 0V-26M0 0L23 13M0 0L-23 13"/></svg>
+</div>
+<div class="wrap">
+  <header class="hero">
+    <h1 class="title">Поймай AI</h1>
+    <p class="subtitle">Здесь можно проверить, насколько ваш текст похож на написанный AI</p>
+    <div style="margin-top:10px;">
+      <img src="m6.png" alt="Печатная машинка" style="display:block; width:100%; max-width:380px; height:auto; margin:0 auto; filter:drop-shadow(0 18px 28px rgba(59,91,255,.16));">
+    </div>
+  </header>
+
+  <div class="card input-card">
+    <textarea id="inp" placeholder="Введите текст для анализа…"></textarea>
+    <span class="counter" id="cnt">0 символов</span>
+  </div>
+
+  <button class="btn-primary" id="go">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    Проверить текст
+  </button>
+  <div class="subactions">
+    <button id="demo">Показать на примере</button>
+    <button id="cleanBtn">Почистить</button>
+    <button id="clr">Сбросить</button>
+  </div>
+
+  <div id="out"></div>
+
+  <div class="features">
+    <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><h4>Прозрачно</h4><p>Покажем, что выглядит как текст нейросети</p></div>
+    <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span><h4>Быстро</h4><p>Мгновенный анализ вашего текста</p></div>
+    <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h4>Конфиденциально</h4><p>Текст не сохраняется и не передаётся третьим лицам</p></div>
+  </div>
+
+</div>
+
+<script src="banlist.js?v=3"></script>
+<script>
+"use strict";
+const BANLIST = window.BANLIST || [];
+const PARTICLES = window.PARTICLES || [];
+const INVIS = {0x200B:1,0x200C:1,0x200D:1,0xFEFF:1,0x2060:1,0x00AD:1,0x202F:1,0x2009:1,0x2007:1,0x2008:1};
+const INVIS_RE = /[​‌‍﻿⁠­    ]/;
+const NOMINAL = /(?:ение|ания|ание|ений|аций|ация|изация|ификация|ость|ости|ствие|ствия|ование|ирование|изм|итие|ения)$/i;
+const DASH = /[‒–—―−]|\s-\s/;
+
+function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+const LB='(?<![\\p{L}])', RB='(?![\\p{L}])';
+function build(item){
+  if(item.t==='r') return new RegExp(item.s,'giu');
+  if(item.t==='w') return new RegExp(LB+'(?:'+item.s+')'+RB,'giu');
+  return new RegExp(LB+'(?:'+esc(item.s).replace(/ +/g,'\\s+')+')'+RB,'giu');
+}
+const PHRASE_RES = BANLIST.map(c=>({name:c.name, why:c.why, res:c.items.map(build)}));
+const PART_RES = PARTICLES.map(build);
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return escHtml(s).replace(/"/g,'&quot;'); }
+function splitSentences(t){ return t.split(/(?<=[.!?…])\s+|\n+/).map(s=>s.trim()).filter(Boolean); }
+function words(t){ return t.match(/[\p{L}\p{N}]+/gu) || []; }
+
+function sentenceLevel(s){
+  let p=0;
+  for(const c of PHRASE_RES){ for(const re of c.res){ re.lastIndex=0; if(re.test(s)){ p+=2; break; } } }
+  if(DASH.test(s)) p+=1;
+  if(INVIS_RE.test(s)) p+=2;
+  let nom=0; for(const w of words(s)){ if(w.length>=6 && NOMINAL.test(w)) nom++; } if(nom>=2) p+=1;
+  for(const re of PART_RES){ re.lastIndex=0; if(re.test(s)){ p-=1; break; } }
+  return p<=0 ? 'human' : (p<=2 ? 'maybe' : 'ai');
+}
+
+function analyze(text){
+  const wc = words(text).length;
+  const sents = splitSentences(text);
+
+  // невидимые символы
+  let invStrong=0; const invSet={};
+  for(let i=0;i<text.length;i++){ const cp=text.codePointAt(i); if(INVIS[cp]){ invStrong++; invSet['U+'+cp.toString(16).toUpperCase()]=(invSet['U+'+cp.toString(16).toUpperCase()]||0)+1; } }
+
+  // тире (учитываем все варианты длинного тире)
+  let dashSent=0; for(const s of sents){ if(DASH.test(s)) dashSent++; }
+  const dmAll = text.match(/[‒–—―−]|\s-\s/g);
+  const dashTotal = dmAll ? dmAll.length : 0;
+  const dashRatio = sents.length ? dashSent/sents.length : 0;
+
+  // burstiness
+  const lens=sents.map(s=>words(s).length).filter(n=>n>0);
+  let cv=null;
+  if(lens.length>=4){ const mn=lens.reduce((a,b)=>a+b,0)/lens.length; const v=lens.reduce((a,b)=>a+(b-mn)*(b-mn),0)/lens.length; cv=mn>0?Math.sqrt(v)/mn:0; }
+
+  // лексическое разнообразие
+  const ws=words(text).map(w=>w.toLowerCase());
+  const uniq=new Set(ws).size;
+  const ld = ws.length ? uniq/ws.length : 1;
+
+  // банлист
+  const catHits=[]; let totalPhrase=0;
+  for(const cat of BANLIST){ const found={}; let n=0;
+    for(const item of cat.items){ const re=build(item); let mm; while((mm=re.exec(text))){ if(mm.index===re.lastIndex) re.lastIndex++; const k=mm[0].toLowerCase(); found[k]=(found[k]||0)+1; n++; } }
+    if(n>0){ catHits.push({name:cat.name,why:cat.why,found}); totalPhrase+=n; } }
+
+  // частицы
+  const partFound={}; let partCount=0;
+  for(const item of PARTICLES){ const re=build(item); let mm; while((mm=re.exec(text))){ if(mm.index===re.lastIndex) re.lastIndex++; const k=mm[0].toLowerCase(); partFound[k]=(partFound[k]||0)+1; partCount++; } }
+
+  // номинализации
+  let nomin=0; for(const w of ws){ if(w.length>=6 && NOMINAL.test(w)) nomin++; }
+  const nominD = ws.length ? nomin/ws.length*100 : 0;
+
+  // markdown
+  let md=false;
+  if(/^\s{0,3}#{1,6}\s+\S/m.test(text)||/(\*\*|__)[^\n*_]{1,80}\1/.test(text)||/\p{Extended_Pictographic}/u.test(text)) md=true;
+
+  // ритм: рубленые фразы и анафора (повтор начала)
+  const segs = text.split(/[.!?…]+|\s*\p{Extended_Pictographic}+\s*/u).map(s=>s.trim()).filter(Boolean);
+  let maxShortRun=0, srun=0;
+  for(const sg of segs){ if(words(sg).length<=4){ srun++; if(srun>maxShortRun)maxShortRun=srun; } else srun=0; }
+  const firstW = segs.map(sg=>{ const m=sg.match(/^[^\p{L}]*(\p{L}+)/u); return m?m[1].toLowerCase():''; });
+  let anaphora=false, anaWord='', anaRun=1;
+  for(let i=1;i<firstW.length;i++){ if(firstW[i] && firstW[i]===firstW[i-1]){ anaRun++; if(anaRun>=3){ anaphora=true; anaWord=firstW[i]; } } else anaRun=1; }
+  const staccato = maxShortRun>=3;
+
+  // ---- процент «машинного» (прозрачно из примет) ----
+  let mp=0;
+  if(invStrong>0) mp+=25;
+  mp += dashRatio>=0.30?20:(dashRatio>=0.15?10:0);
+  if(cv!==null && cv<0.35) mp+=15;
+  mp += Math.min(32, totalPhrase*7);
+  if(nominD>=6 && ws.length>=80) mp+=10;
+  if(md) mp+=12;
+  if(ld<0.5 && ws.length>=60) mp+=8;
+  mp -= Math.min(12, partCount*4);
+  if(anaphora) mp+=12;
+  if(staccato) mp+=10;
+  // сложение улик: когда несколько разных примет встречаются вместе — поднимаем
+  let signals=0;
+  if(invStrong>0) signals++;
+  if(dashRatio>=0.15) signals++;
+  if(cv!==null && cv<0.35) signals++;
+  if(totalPhrase>=1) signals++;
+  if(md) signals++;
+  if(nominD>=6) signals++;
+  if(anaphora||staccato) signals++;
+  if(signals>=3) mp+=14;
+  mp = Math.max(0, Math.min(98, Math.round(mp)));
+
+  let level='human', label='Скорее всего, человек', sub='Текст выглядит живым',
+      expl='Предложения разной длины, лексика разнообразная — так обычно пишут люди.';
+  if(mp>=67){ level='ai'; label='Похоже на нейросеть'; sub='Текст похож на машинный'; expl='Ровный ритм и предсказуемые формулировки — частые приметы текста от ИИ.'; }
+  else if(mp>=34){ level='mixed'; label='Смешанный текст'; sub='Часть текста похожа на ИИ'; expl='Одни предложения выглядят живыми, другие — машинными. Смотрите подсветку ниже.'; }
+
+  // ---- метрики ----
+  function lvl(x,a,b){ return x>=b?2:(x>=a?1:0); } // 2 хорошо,1 средне,0 плохо (для «человечности»)
+  const varScore = (cv===null?1:lvl(cv,0.30,0.45)) ; // разнообразие ритма
+  const ldScore = lvl(ld,0.45,0.6);
+  const naturalScore = mp<34?2:(mp<67?1:0);
+  const repScore = 2-Math.max(varScore===2&&ldScore===2?0:(ldScore===0||totalPhrase>=4?2:1),0); // повторяемость как «человечность»
+  const word3=['Низкая','Средняя','Высокая'], word3n=['Низкое','Среднее','Высокое'];
+  const tone=['bad','mid','good'];
+  const metrics=[
+    {k:'Естественность', v:word3[naturalScore], t:tone[naturalScore]},
+    {k:'Разнообразие', v:word3n[Math.min(varScore+ (ldScore===2?0:0),2)], t:tone[varScore]},
+    {k:'Повторяемость', v:word3[2-repScore], t:tone[repScore]}
+  ];
+
+  // ---- посентенсная подсветка ----
+  const sentMarks = sents.map(s=>({text:s, lvl:sentenceLevel(s)}));
+  if(anaphora){ for(const m of sentMarks){ const mm=m.text.match(/^[^\p{L}]*(\p{L}+)/u); if(mm && mm[1].toLowerCase()===anaWord && words(m.text).length<=6 && m.lvl==='human') m.lvl='maybe'; } }
+
+  let rhythm=null;
+  if(anaphora) rhythm={title:'Повтор начала фраз (анафора)', why:'Несколько фраз подряд начинаются с одного и того же слова («'+anaWord+'…»). Машина так делает ради искусственно ровного ритма, и такие обрывки часто не связаны по смыслу с предыдущим предложением.'};
+  else if(staccato) rhythm={title:'Рубленые короткие фразы', why:'Несколько очень коротких обрывков идут один за другим. Машина любит дробить мысль «для красоты», а живой человек так делает редко.'};
+
+  let dashNote=null;
+  if(dashRatio>=0.30) dashNote={title:'Длинных тире очень много', why:'Тире стоит почти в каждом предложении. В русском тире — обычный знак, но такая частота уже похожа на машинный ритм.'};
+  else if(dashTotal>=1) dashNote={title:'Длинное тире (×'+dashTotal+')', why:'В русском тире — нормальная пунктуация (например, «цвет — часть системы»), поэтому одно-два тире машинной приметой не считаются. Настораживает, только когда тире почти в каждой фразе.'};
+
+  return {wc, mp, level, label, sub, expl, metrics, sentMarks, invSet, invStrong, catHits, totalPhrase, partFound, partCount, sents:sents.length, dashRatio, dashTotal, rhythm, dashNote};
+}
+
+function ring(mp, level){
+  const r=52, c=2*Math.PI*r, off=c*(1-mp/100);
+  const col = level==='ai'?'var(--red)':(level==='mixed'?'var(--amber)':'var(--green)');
+  return '<div class="ring"><svg viewBox="0 0 118 118"><circle cx="59" cy="59" r="52" fill="none" stroke="var(--line2)" stroke-width="11"/>'
+    +'<circle cx="59" cy="59" r="52" fill="none" stroke="'+col+'" stroke-width="11" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 59 59)"/></svg>'
+    +'<div class="num"><b>'+mp+'%</b><small>машинного</small></div></div>';
+}
+
+function highlightSentences(marks){
+  const cls={human:'s-human',maybe:'s-maybe',ai:'s-ai'};
+  return marks.map(m=>{
+    let html=escHtml(m.text).replace(INVIS_RE_G, ch=>'<mark class="inv">U+'+ch.codePointAt(0).toString(16).toUpperCase()+'</mark>');
+    return '<span class="'+cls[m.lvl]+'">'+html+'</span>';
+  }).join(' ');
+}
+const INVIS_RE_G=/[​‌‍﻿⁠­    ]/g;
+
+function renderResult(a, text){
+  let h='<div class="card rcard">';
+  h+='<div class="rhead"><span class="rtitle">Результат</span></div>';
+  h+='<div class="verdict">'+ring(a.mp,a.level)+'<div class="vmain">'
+    +'<div class="vlabel t-'+a.level+'">'+a.label+'</div>'
+    +'<div class="vsub">'+a.sub+'</div><div class="vexpl">'+a.expl+'</div></div></div>';
+
+  h+='<div class="metrics">';
+  for(const m of a.metrics) h+='<div class="metric"><div class="mk">'+m.k+'</div><div class="mv '+m.t+'">'+m.v+'</div></div>';
+  h+='</div>';
+
+  h+='<div class="ractions"><button class="btn-ghost" id="copyR"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Копировать</button>'
+    +'</div>';
+
+  if(a.wc<60) h+='<p class="disc">Текст короткий: для надёжности нужно хотя бы 300 слов.</p>';
+  h+='</div>';
+
+  // подсветка
+  h+='<div class="card rcard"><div class="sec">Подсветка по предложениям</div>';
+  h+='<div class="legend"><span><span class="sw h"></span>Человек</span><span><span class="sw m"></span>Сомнительно</span><span><span class="sw a"></span>Нейросеть</span></div>';
+  h+='<div class="hlbox">'+highlightSentences(a.sentMarks)+'</div>';
+
+  // что нашлось — с объяснениями
+  const blocks=[];
+  if(a.invStrong) blocks.push({n:'Невидимые символы (×'+a.invStrong+')', w:'Это символы-невидимки: глазом их не видно. Живой человек их не печатает — почти всегда они означают, что текст копировали из чат-бота или ИИ-редактора.', chips:Object.keys(a.invSet)});
+  for(const c of a.catHits) blocks.push({n:c.name, w:c.why, chips:Object.keys(c.found).map(k=>k+' ×'+c.found[k])});
+  if(a.rhythm) blocks.push({n:a.rhythm.title, w:a.rhythm.why, chips:[]});
+  if(a.dashNote) blocks.push({n:a.dashNote.title, w:a.dashNote.why, chips:[]});
+
+  if(blocks.length){
+    h+='<div class="subhead">Что нашлось — и что это значит</div>';
+    for(const b of blocks){
+      h+='<div class="finding"><div class="fname">'+escHtml(b.n)+'</div><div class="fwhy">'+escHtml(b.w)+'</div>';
+      if(b.chips.length){ h+='<div class="chips" style="margin-top:6px">'; for(const ch of b.chips) h+='<span class="chip">'+escHtml(ch)+'</span>'; h+='</div>'; }
+      h+='</div>';
+    }
+  }
+  if(a.partCount){ h+='<div class="subhead">Признаки живой речи</div><div class="chips">';
+    for(const k in a.partFound) h+='<span class="chip live">'+escHtml(k)+'<span class="n">×'+a.partFound[k]+'</span></span>';
+    h+='</div>'; }
+  h+='<p class="disc">Это оценка по признакам, а не доказательство. Грамотный человек тоже может набрать высокий процент. Решение за вами.</p>';
+  h+='</div>';
+
+  document.getElementById('out').innerHTML=h;
+  document.getElementById('copyR').addEventListener('click',function(){
+    const rep='Поймай AI\n'+a.mp+'% машинного — '+a.label+'\nЕстественность: '+a.metrics[0].v+', Разнообразие: '+a.metrics[1].v+', Повторяемость: '+a.metrics[2].v;
+    copyText(rep); this.lastChild.textContent='Скопировано';
+  });
+}
+
+/* ---------- Почистить ---------- */
+function clean(text){
+  let t=text; const changes=[]; let inv=0;
+  t=t.replace(/[​‌‍﻿⁠­]/g,()=>{inv++;return '';});
+  t=t.replace(/[     ]/g,()=>{inv++;return ' ';});
+  if(inv) changes.push({label:'невидимые символы убраны',count:inv});
+  let dash=0; t=t.replace(/(\S)[ \t]+—[ \t]+/g,(m,p1)=>{dash++;return p1+', ';}); if(dash) changes.push({label:'длинное тире на запятую',count:dash});
+  let mdc=0; t=t.replace(/\*\*([^\n*]+)\*\*/g,(m,x)=>{mdc++;return x;}); t=t.replace(/__([^\n_]+)__/g,(m,x)=>{mdc++;return x;}); t=t.replace(/^\s{0,3}#{1,6}\s+/gm,()=>{mdc++;return '';}); if(mdc) changes.push({label:'разметка markdown убрана',count:mdc});
+  let emo=0; t=t.replace(/\p{Extended_Pictographic}️?/gu,()=>{emo++;return '';}); if(emo) changes.push({label:'эмодзи убраны',count:emo});
+  t=t.replace(/[ \t]{2,}/g,' ').replace(/ +([,.!?;:])/g,'$1').replace(/[ \t]+\n/g,'\n').trim();
+  const manual={};
+  for(const cat of BANLIST){ for(const item of cat.items){ const re=build(item); let mm; while((mm=re.exec(t))){ if(mm.index===re.lastIndex) re.lastIndex++; const k=mm[0].toLowerCase(); manual[k]=(manual[k]||0)+1; } } }
+  return {text:t,changes,manual};
+}
+function copyText(t){ if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(t); return; } const ta=document.getElementById('cleanOut'); if(ta){ ta.focus(); ta.select(); try{document.execCommand('copy');}catch(e){} } }
+function renderClean(c){
+  let h='<div class="card rcard"><div class="sec">Почищенный текст</div>';
+  h+='<textarea id="cleanOut" readonly></textarea>';
+  h+='<div class="ractions"><button class="btn-ghost" id="copyClean">Скопировать</button><button class="btn-ghost" id="useClean">В поле проверки</button></div>';
+  if(c.changes.length){ h+='<div class="subhead">Убрано автоматически</div><div class="chips">'; for(const ch of c.changes) h+='<span class="chip">'+ch.label+'<span class="n">×'+ch.count+'</span></span>'; h+='</div>'; }
+  else h+='<p class="disc">Механических примет не нашлось, чистить нечего.</p>';
+  const keys=Object.keys(c.manual);
+  if(keys.length){ h+='<div class="subhead">Перепиши вручную (авто-замена испортит грамматику)</div><div class="chips">'; for(const k of keys) h+='<span class="chip">'+escHtml(k)+'<span class="n">×'+c.manual[k]+'</span></span>'; h+='</div>'; }
+  h+='<p class="disc">Убрана только безопасная механика: невидимые символы, тире, разметка, эмодзи.</p></div>';
+  document.getElementById('out').innerHTML=h;
+  document.getElementById('cleanOut').value=c.text;
+  document.getElementById('copyClean').addEventListener('click',function(){ copyText(c.text); this.textContent='Скопировано'; });
+  document.getElementById('useClean').addEventListener('click',()=>{ inp.value=c.text; upd(); runCheck(); });
+}
+
+/* история убрана: обещаем ничего не хранить, поэтому и не храним */
+
+/* ---------- демо ---------- */
+const DEMO=["В современном мире искусственный интеллект играет ключевую роль во множестве сфер. ",
+  "Стоит отметить, что это не просто инструмент, а полноценный партнёр. Таким образом, можно с уверенностью сказать, ",
+  "что данный подход открывает новые горизонты — от стартапов до корпораций. Важно понимать, что внедрение оптимизации ",
+  "обеспечивает значительный результат — без шума, без хаоса, без лишних усилий. Подводя итог: технологии меняют всё, ",
+  "и это невозможно переоценить."].join("");
+function demoText(){ return DEMO.replace("меняют всё,","меняют всё,"+String.fromCharCode(0x202F)); }
+
+function showEmpty(){
+  document.getElementById('out').innerHTML='<div class="card rcard"><div class="rhead"><span class="rtitle">Результат</span></div>'
+   +'<div class="empty"><span class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg></span><p>Пока нет результата</p></div></div>';
+}
+function showLoading(){
+  document.getElementById('out').innerHTML='<div class="card rcard"><div class="rhead"><span class="rtitle">Результат</span></div>'
+   +'<div class="loading"><div class="spin"></div><div class="lt">Анализируем текст…</div><div class="ls">Обычно занимает несколько секунд</div></div></div>';
+}
+
+/* ---------- события ---------- */
+const inp=document.getElementById('inp'), cnt=document.getElementById('cnt');
+function plural(n){ var a=n%10, b=n%100; return (a===1&&b!==11)?'символ':((a>=2&&a<=4&&(b<12||b>14))?'символа':'символов'); }
+function upd(){ var n=inp.value.length; cnt.textContent=n+' '+plural(n); }
+let busy=false;
+function runCheck(){
+  const text=inp.value; if(!text.trim()){ inp.focus(); return; }
+  busy=true; showLoading();
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>{ const a=analyze(text); renderResult(a,text); busy=false; },600);
+}
+inp.addEventListener('input',upd);
+document.getElementById('go').addEventListener('click',runCheck);
+document.getElementById('cleanBtn').addEventListener('click',()=>{ if(!inp.value.trim()){inp.focus();return;} renderClean(clean(inp.value)); document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'}); });
+document.getElementById('clr').addEventListener('click',()=>{ inp.value=''; upd(); showEmpty(); });
+document.getElementById('demo').addEventListener('click',()=>{ inp.value=demoText(); upd(); runCheck(); });
+upd(); showEmpty();
+</script>
+</body>
+</html>

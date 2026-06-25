@@ -1,0 +1,8 @@
+# В репозиторий идут только файлы сайта, остальное не трекаем
+/*
+!/.gitignore
+!/index.html
+!/banlist.js
+!/m6.png
+!/README.md
+!/.nojekyll

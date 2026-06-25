@@ -193,12 +193,12 @@
   <div class="features">
     <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span><h4>Прозрачно</h4><p>Покажем, что выглядит как текст нейросети</p></div>
     <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span><h4>Быстро</h4><p>Мгновенный анализ вашего текста</p></div>
-    <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h4>Конфиденциально</h4><p>Текст не сохраняется и не передаётся третьим лицам</p></div>
+    <div class="feature"><span class="fic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span><h4>Безопасно</h4><p>Текст не сохраняется и не передаётся третьим лицам</p></div>
   </div>
 
 </div>
 
-<script src="banlist.js?v=3"></script>
+<script src="banlist.js?v=4"></script>
 <script>
 "use strict";
 const BANLIST = window.BANLIST || [];
@@ -308,9 +308,9 @@ function analyze(text){
   mp = Math.max(0, Math.min(98, Math.round(mp)));
 
   let level='human', label='Скорее всего, человек', sub='Текст выглядит живым',
-      expl='Предложения разной длины, лексика разнообразная — так обычно пишут люди.';
-  if(mp>=67){ level='ai'; label='Похоже на нейросеть'; sub='Текст похож на машинный'; expl='Ровный ритм и предсказуемые формулировки — частые приметы текста от ИИ.'; }
-  else if(mp>=34){ level='mixed'; label='Смешанный текст'; sub='Часть текста похожа на ИИ'; expl='Одни предложения выглядят живыми, другие — машинными. Смотрите подсветку ниже.'; }
+      expl='Предложения разной длины, слова не повторяются. Так обычно пишут люди.';
+  if(mp>=67){ level='ai'; label='Похоже на нейросеть'; sub='Текст похож на машинный'; expl='Ровный ритм и предсказуемые обороты. Частые приметы машинного текста.'; }
+  else if(mp>=34){ level='mixed'; label='Смешанный текст'; sub='Часть текста похожа на ИИ'; expl='Одни предложения выглядят живыми, другие машинными. Смотрите подсветку ниже.'; }
 
   // ---- метрики ----
   function lvl(x,a,b){ return x>=b?2:(x>=a?1:0); } // 2 хорошо,1 средне,0 плохо (для «человечности»)
@@ -335,8 +335,8 @@ function analyze(text){
   else if(staccato) rhythm={title:'Рубленые короткие фразы', why:'Несколько очень коротких обрывков идут один за другим. Машина любит дробить мысль «для красоты», а живой человек так делает редко.'};
 
   let dashNote=null;
-  if(dashRatio>=0.30) dashNote={title:'Длинных тире очень много', why:'Тире стоит почти в каждом предложении. В русском тире — обычный знак, но такая частота уже похожа на машинный ритм.'};
-  else if(dashTotal>=1) dashNote={title:'Длинное тире (×'+dashTotal+')', why:'В русском тире — нормальная пунктуация (например, «цвет — часть системы»), поэтому одно-два тире машинной приметой не считаются. Настораживает, только когда тире почти в каждой фразе.'};
+  if(dashRatio>=0.30) dashNote={title:'Длинных тире очень много', why:'Тире стоит почти в каждом предложении. В русском это обычный знак, но когда он почти в каждой фразе, получается машинный ритм.'};
+  else if(dashTotal>=1) dashNote={title:'Длинное тире (×'+dashTotal+')', why:'В русском языке тире ставят постоянно и по делу, это нормальный знак. Поэтому одно-два за примету не считаются. Подозрительно становится, только когда тире почти в каждой фразе.'};
 
   return {wc, mp, level, label, sub, expl, metrics, sentMarks, invSet, invStrong, catHits, totalPhrase, partFound, partCount, sents:sents.length, dashRatio, dashTotal, rhythm, dashNote};
 }
@@ -382,13 +382,13 @@ function renderResult(a, text){
 
   // что нашлось — с объяснениями
   const blocks=[];
-  if(a.invStrong) blocks.push({n:'Невидимые символы (×'+a.invStrong+')', w:'Это символы-невидимки: глазом их не видно. Живой человек их не печатает — почти всегда они означают, что текст копировали из чат-бота или ИИ-редактора.', chips:Object.keys(a.invSet)});
+  if(a.invStrong) blocks.push({n:'Невидимые символы (×'+a.invStrong+')', w:'Символы-невидимки, глазом их не видно. Живой человек их не печатает. Почти всегда это значит, что текст копировали из чат-бота или ИИ-редактора.', chips:Object.keys(a.invSet)});
   for(const c of a.catHits) blocks.push({n:c.name, w:c.why, chips:Object.keys(c.found).map(k=>k+' ×'+c.found[k])});
   if(a.rhythm) blocks.push({n:a.rhythm.title, w:a.rhythm.why, chips:[]});
   if(a.dashNote) blocks.push({n:a.dashNote.title, w:a.dashNote.why, chips:[]});
 
   if(blocks.length){
-    h+='<div class="subhead">Что нашлось — и что это значит</div>';
+    h+='<div class="subhead">Что нашлось и что это значит</div>';
     for(const b of blocks){
       h+='<div class="finding"><div class="fname">'+escHtml(b.n)+'</div><div class="fwhy">'+escHtml(b.w)+'</div>';
       if(b.chips.length){ h+='<div class="chips" style="margin-top:6px">'; for(const ch of b.chips) h+='<span class="chip">'+escHtml(ch)+'</span>'; h+='</div>'; }
@@ -398,12 +398,11 @@ function renderResult(a, text){
   if(a.partCount){ h+='<div class="subhead">Признаки живой речи</div><div class="chips">';
     for(const k in a.partFound) h+='<span class="chip live">'+escHtml(k)+'<span class="n">×'+a.partFound[k]+'</span></span>';
     h+='</div>'; }
-  h+='<p class="disc">Это оценка по признакам, а не доказательство. Грамотный человек тоже может набрать высокий процент. Решение за вами.</p>';
   h+='</div>';
 
   document.getElementById('out').innerHTML=h;
   document.getElementById('copyR').addEventListener('click',function(){
-    const rep='Поймай AI\n'+a.mp+'% машинного — '+a.label+'\nЕстественность: '+a.metrics[0].v+', Разнообразие: '+a.metrics[1].v+', Повторяемость: '+a.metrics[2].v;
+    const rep='Поймай AI\n'+a.mp+'% машинного, '+a.label+'\nЕстественность: '+a.metrics[0].v+', Разнообразие: '+a.metrics[1].v+', Повторяемость: '+a.metrics[2].v;
     copyText(rep); this.lastChild.textContent='Скопировано';
   });
 }

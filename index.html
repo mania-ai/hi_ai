@@ -282,6 +282,11 @@ function analyze(text){
   let anaphora=false, anaWord='', anaRun=1;
   for(let i=1;i<firstW.length;i++){ if(firstW[i] && firstW[i]===firstW[i-1]){ anaRun++; if(anaRun>=3){ anaphora=true; anaWord=firstW[i]; } } else anaRun=1; }
   const staccato = maxShortRun>=3;
+  // оборванные фразы с предлога: «На цвет», «На детали» (предлог + одно слово, без глагола) — калька с английского
+  const PREP = /^(в|во|о|об|обо|на|к|ко|по|из|изо|с|со|от|ото|до|для|при|про|за|под|подо|над|надо|без|у|через|между|около|среди|кроме|ради)$/;
+  let orphans=[];
+  for(const sg of segs){ const ow=words(sg); if(ow.length===2 && PREP.test(ow[0].toLowerCase())) orphans.push(sg.trim()); }
+  const orphanHit = orphans.length>=2;
 
   // ---- процент «машинного» (прозрачно из примет) ----
   let mp=0;
@@ -293,7 +298,8 @@ function analyze(text){
   if(md) mp+=12;
   if(ld<0.5 && ws.length>=60) mp+=8;
   mp -= Math.min(12, partCount*4);
-  if(anaphora) mp+=12;
+  if(orphanHit) mp += Math.min(20, orphans.length*10);
+  else if(anaphora) mp+=12;
   if(staccato) mp+=10;
   // сложение улик: когда несколько разных примет встречаются вместе — поднимаем
   let signals=0;
@@ -303,7 +309,7 @@ function analyze(text){
   if(totalPhrase>=1) signals++;
   if(md) signals++;
   if(nominD>=6) signals++;
-  if(anaphora||staccato) signals++;
+  if(orphanHit||anaphora||staccato) signals++;
   if(signals>=3) mp+=14;
   mp = Math.max(0, Math.min(98, Math.round(mp)));
 
@@ -328,10 +334,12 @@ function analyze(text){
 
   // ---- посентенсная подсветка ----
   const sentMarks = sents.map(s=>({text:s, lvl:sentenceLevel(s)}));
+  if(orphanHit){ for(const m of sentMarks){ const ow=words(m.text); if(ow.length===2 && PREP.test(ow[0].toLowerCase())) m.lvl='ai'; } }
   if(anaphora){ for(const m of sentMarks){ const mm=m.text.match(/^[^\p{L}]*(\p{L}+)/u); if(mm && mm[1].toLowerCase()===anaWord && words(m.text).length<=6 && m.lvl==='human') m.lvl='maybe'; } }
 
   let rhythm=null;
-  if(anaphora) rhythm={title:'Повтор начала фраз (анафора)', why:'Несколько фраз подряд начинаются с одного и того же слова («'+anaWord+'…»). Машина так делает ради искусственно ровного ритма, и такие обрывки часто не связаны по смыслу с предыдущим предложением.'};
+  if(orphanHit) rhythm={title:'Оборванные фразы (калька с английского)', why:'Фразы «'+orphans[0]+'», «'+orphans[1]+'» это предлог с существительным без глагола: они висят сами по себе и ни с чем не связаны. В английском так можно, в русском это сразу выдаёт дословный перевод. Живой автор собрал бы это в одно предложение или в список.'};
+  else if(anaphora) rhythm={title:'Повтор начала фраз (анафора)', why:'Несколько фраз подряд начинаются с одного и того же слова («'+anaWord+'…»). Машина так делает ради искусственно ровного ритма, и такие обрывки часто не связаны по смыслу с предыдущим предложением.'};
   else if(staccato) rhythm={title:'Рубленые короткие фразы', why:'Несколько очень коротких обрывков идут один за другим. Машина любит дробить мысль «для красоты», а живой человек так делает редко.'};
 
   let dashNote=null;

@@ -175,7 +175,7 @@
 
   <div class="card input-card">
     <textarea id="inp" placeholder="Введите текст для анализа…"></textarea>
-    <span class="counter" id="cnt">0 символов</span>
+    <span class="counter" id="cnt">0 слов</span>
   </div>
 
   <button class="btn-primary" id="go">
@@ -458,8 +458,8 @@ function showLoading(){
 
 /* ---------- события ---------- */
 const inp=document.getElementById('inp'), cnt=document.getElementById('cnt');
-function plural(n){ var a=n%10, b=n%100; return (a===1&&b!==11)?'символ':((a>=2&&a<=4&&(b<12||b>14))?'символа':'символов'); }
-function upd(){ var n=inp.value.length; cnt.textContent=n+' '+plural(n); }
+function plural(n){ var a=n%10, b=n%100; return (a===1&&b!==11)?'слово':((a>=2&&a<=4&&(b<12||b>14))?'слова':'слов'); }
+function upd(){ var n=words(inp.value).length; cnt.textContent=n+' '+plural(n); }
 let busy=false;
 function runCheck(){
   const text=inp.value; if(!text.trim()){ inp.focus(); return; }
